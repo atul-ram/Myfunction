@@ -1,0 +1,18 @@
+
+Resources
+| where type =~ 'Microsoft.Network/virtualNetworks'
+| where name == "airflow01-d-vnet"
+| where subscriptionId == "39990606-1XX0-3333-bfc7-0aXXXXXdXXa"
+| mv-expand config = (properties.subnets)
+| mv-expand interfaces = (config.properties.ipConfigurations)
+| mv-expand id = (interfaces.id)
+| mv-expand a = todynamic("a")
+| project id , a
+| join (Resources
+| where type == "microsoft.containerservice/managedclusters"
+| where name == "airflow-d-01-aks"
+| mv-expand profile = (properties.agentPoolProfiles)
+| mv-expand nodes = profile["count"]
+| mv-expand maxPods = profile["maxPods"]
+| mv-expand a = todynamic("a")
+| project ['used_ip'] = tolong(nodes) + tolong(maxPods) * tolong(nodes) +5+1 , a ) on a
