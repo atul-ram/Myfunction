@@ -1,0 +1,24 @@
+let dc = externaldata(values: dynamic)
+[
+h@"https://raw.githubusercontent.com/atul-ram/Myfunction/master/ServiceTags_Public_20210208.json"
+]
+with(format="multijson")
+| mv-expand values
+| extend name = values.name , addressPrefixes = values.properties.addressPrefixes, Service = values.properties.systemService, region = values.properties.region
+| mv-expand addressPrefixes
+| where name has "westeurope"
+| project datacenter_ip=tostring(addressPrefixes),name,Service,region;
+let dest_ip = AzureDiagnostics 
+    | where TimeGenerated > ago(1d)
+    | where Category == "AzureFirewallNetworkRule" 
+    | parse msg_s with Protocol " request from " SourceIP ":" SourcePortInt: int " to" DestinationIP ":" DestinationPortInt: int ". Action:" action 
+    | project msg_s,SourceIP,DestinationIP,DestinationPortInt,action
+    | where SourceIP contains "AA.XXX.18";
+dest_ip| evaluate ipv4_lookup(dc, DestinationIP, datacenter_ip, return_unmatched = true)
+| project msg_s,SourceIP,DestinationIP,action,datacenter_ip,name,DestinationPortInt
+//| distinct DestinationIP
+| summarize count() by SourceIP,DestinationIP,DestinationPortInt,datacenter_ip,tostring(name)
+//| where count_ > 4000
+//| order by count_
+| top 100 by count_
+| render barchart with ( title="Ttaffic towards AzureDatacenter",xcolumn=name,ycolumns=count_,kind=stacked )
