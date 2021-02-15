@@ -1,0 +1,9 @@
+Resources  
+| where type =~ 'microsoft.network/azureFirewalls'  
+| where subscriptionId == 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'  
+| mv-expand config = (properties.ipConfigurations)  
+| project name, resourceGroup, id, config.properties.privateIPAddress, config.properties.subnet.id, t= tostring(config.properties.publicIPAddress.id) 
+| join (Resources 
+| where type =~ 'microsoft.network/publicIPAddresses'  
+| where subscriptionId == 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' 
+| project t= tostring(id), name, properties.ipAddress) on t 
