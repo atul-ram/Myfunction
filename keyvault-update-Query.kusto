@@ -1,0 +1,7 @@
+AzureDiagnostics
+| where Category == "AuditEvent" 
+| where OperationName in ("SecretSet","SecretUpdate")
+//| where OperationName !in ("Authentication","SecretGet","VaultGet","SecretListVersions","SecretList","SecretNearExpiryEventGridNotification","SecretGetDeleted")
+| where Resource == toupper("abc01-d-01-kv")
+| where ResourceGroup == toupper("atul-abc-d-rg")
+| project TimeGenerated, OperationName, Id = strcat(Resource, '/', OperationName), ResultSignature, id_s
