@@ -1,3 +1,6 @@
+
+
+```
 Function Get-AgentIP {
     If (Get-Variable -Name cachedAgentIPAddress -Scope Global -ErrorAction SilentlyContinue) {
         Return $Global:cachedAgentIPAddress
@@ -9,3 +12,4 @@ Function Get-AgentIP {
         Return $agentIP
     }
 }
+```
