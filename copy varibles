@@ -1,0 +1,16 @@
+$PersonalAccessToken = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+$accessToken = [System.Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(":$($PersonalAccessToken)"))
+$headers = @{
+    "Authorization" = "Basic $($accessToken)"
+}
+$OrganizationName = "XXX"
+$Project = "XXX"
+$baseUri = "https://vsrm.dev.azure.com/" + $OrganizationName  + "/" + $Project + "/"
+$uri = $baseUri + "_apis/release/definitions?searchText=XXXXX&api-version=5.1"
+$definitions = Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+$tmp=$definitions.value |  Where-Object -FilterScript { $_.name -eq "XXXXX"}
+$id = [int32] $tmp.id
+$uri = $baseUri + "_apis/release/definitions/"+$id+"?api-version=5.1"
+$def=Invoke-RestMethod -Uri $uri -Method Get -Headers $headers
+$env=$def.environments | Where-Object -FilterScript { $_.name -eq "Development"}
+$env.variables | ConvertTo-Json
