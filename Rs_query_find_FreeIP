@@ -16,3 +16,14 @@ Resources
 | mv-expand maxPods = profile["maxPods"]
 | mv-expand a = todynamic("a")
 | project ['used_ip'] = tolong(nodes) + tolong(maxPods) * tolong(nodes) +5+1 , a ) on a
+
+
+
+// find subnet details 
+
+Resources
+| where type == "microsoft.network/virtualnetworks"
+| mv-expand subnets= (properties.subnets)
+| parse subnets.id with * "/resourceGroups/" resourceGroup "/providers/Microsoft.Network/virtualNetworks/" vnet_name "/subnets/" subnet_name
+| where resourceGroup == "XXX-d-rg"
+| project  subnets.id,resourceGroup,vnet_name,subnet_name
