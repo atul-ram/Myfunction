@@ -27,3 +27,15 @@ Resources
 | parse subnets.id with * "/resourceGroups/" resourceGroup "/providers/Microsoft.Network/virtualNetworks/" vnet_name "/subnets/" subnet_name
 | where resourceGroup == "XXX-d-rg"
 | project  subnets.id,resourceGroup,vnet_name,subnet_name
+
+
+// find number of used ip 
+
+resources
+| where type =~ 'microsoft.network/virtualNetworks'
+| where name == "asdf-d-vnet"
+| mv-expand config = (properties.subnets)
+| parse config.id with * "/resourceGroups/" resourceGroup "/providers/Microsoft.Network/virtualNetworks/" vnet_name "/subnets/" subnet_name
+| extend ipConfigsCount=array_length(config.properties.ipConfigurations)
+| project name,subnet_name,ipConfigsCount
+
