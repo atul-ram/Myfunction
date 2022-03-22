@@ -1,0 +1,38 @@
+
+[CmdletBinding()]
+Param
+(
+    [Parameter(Mandatory = $true)][string]$usecase
+
+)
+
+$context = [Microsoft.Azure.Commands.Common.Authentication.Abstractions.AzureRmProfileProvider]::Instance.Profile.DefaultContext
+$graphToken = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id.ToString(), $null, [Microsoft.Azure.Commands.Common.Authentication.ShowDialog]::Never, $null, "https://graph.microsoft.com").AccessToken
+
+$Headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$Headers.Add("Authorization", "Bearer $graphToken")
+
+$Path="C:\Users\C59952\SourceCode\odpt-dds-infra\usecases"
+$Env='d','a','p'
+$temp = $usecase + '\files'
+$folderPath = Join-Path -Path $Path -ChildPath $temp
+$folderPath
+mkdir $folderPath
+
+foreach ($item in $Env) {
+
+$childPath= $usecase + '\files\scim-groups-tosync-' + $item +'.json'
+
+$filePath= Join-Path -Path $path -ChildPath $childPath
+$filePath
+$servicePrincipalName= $usecase + '-' + $item + '-01-dbr-provisioning'
+$servicePrincipalName
+$servicePrincipalId=(Get-AzADServicePrincipal -DisplayName $servicePrincipalName ).Id
+$Uri='https://graph.microsoft.com/beta/servicePrincipals/' +$servicePrincipalId +'/appRoleAssignedTo?$select=principalDisplayName'
+$Uri
+
+$response=Invoke-WebRequest -Method GET  -Uri $Uri -Headers $Headers
+$response.Content
+$response.Content | Out-File -encoding utf8  -Path $filePath
+
+}
