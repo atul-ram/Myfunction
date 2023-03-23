@@ -1,0 +1,7 @@
+resources
+| where type =~ 'Microsoft.Databricks/workspaces'
+| mv-expand vnetId = (properties.parameters.customVirtualNetworkId).value
+| extend connect = iff(vnetId contains "-vnets-", "Vnet-Injection", "custom connected")
+| mv-expand Environment = (tags.Environment)
+| mv-expand CBSPProduct = (tags.CBSPProduct)
+| project subscriptionId,resourceGroupName=tostring(split(id,"/",4)),DatabricksWorkspaceName=name,connect,Environment,CBSPProduct,VnetName=split(vnetId,"/",8)
